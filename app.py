@@ -41,6 +41,9 @@ class ServerError(Exception):
         error_dict['message'] = self.message
         return error_dict
 
+_model_117M = None
+_model_345M = None
+_model_774M = None
 
 def model_117M():
     global _model_117M
