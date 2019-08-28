@@ -174,7 +174,7 @@ def make_app(google_analytics_ua: str) -> Flask:
             "logits": [0 for _ in outputs],
             "probabilities": [0 for _ in outputs],
             "words": [x for x in outputs],
-            "output": seed,
+            "output": (next_str or ""),
         })
 
     # This endpoint isn't used, so it's commented out. You can re-enable
