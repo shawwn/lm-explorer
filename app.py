@@ -136,6 +136,47 @@ def make_app(google_analytics_ua: str) -> Flask:
             "output": previous_str + (next_str or "")
         })
 
+    @app.route('/generate', methods=['POST', 'OPTIONS'])
+    def generate() -> Response:  # pylint: disable=unused-variable
+        if request.method == "OPTIONS":
+            return Response(response="", status=200)
+
+        data = request.get_json()
+
+        previous_str = data["previous"]
+        next_str = data.get("next")
+
+        topk = data.get("topk", 10)
+        num_steps = data.get('numsteps', 1)
+
+        # Log the query
+        app.logger.info(f"<{previous_str}> <{next_str}>")
+
+        model_name = data.get("model_name", "117M")
+        if model_name == "117M":
+            model = model_117M()
+        elif model_name == "345M":
+            model = model_345M()
+        elif model_name == "774M":
+            model = model_774M()
+
+        seed = previous_str + (next_str or "")
+        output = model.generate(seed=seed, max_len=num_steps)
+        outputs = [output]
+
+        # random sample
+        # random_id = random_sample(logits)
+        # random_word = model[random_id]
+        # random_word_logit = logits[random_id].item()
+        # random_word_probability = probabilities[random_id].item()
+
+        return jsonify({
+            "logits": [0 for _ in outputs],
+            "probabilities": [0 for _ in outputs],
+            "words": [x for x in outputs],
+            "output": seed,
+        })
+
     # This endpoint isn't used, so it's commented out. You can re-enable
     # it by uncommenting it.
     
