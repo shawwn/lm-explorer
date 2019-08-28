@@ -228,7 +228,7 @@ function trimRight(str) {
   return str.replace(/ +$/, '');
 }
 
-const DEFAULT_MODEL = "774M"
+const DEFAULT_MODEL = "117M"
 const DEFAULT_TOPK = 10
 const DEFAULT_ENDPOINT = "/predict";
 const DEFAULT_NUMSTEPS = 3
