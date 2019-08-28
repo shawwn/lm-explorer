@@ -229,6 +229,7 @@ function trimRight(str) {
 }
 
 const DEFAULT_MODEL = "774M"
+const DEFAULT_TOPK = 10
 
 class App extends React.Component {
 
@@ -244,7 +245,8 @@ class App extends React.Component {
       probabilities: null,
       loading: false,
       error: false,
-      model: DEFAULT_MODEL
+      model: DEFAULT_MODEL,
+      topk: DEFAULT_TOPK,
     }
 
     this.switchModel = this.switchModel.bind(this)
@@ -312,7 +314,8 @@ class App extends React.Component {
       previous: trimmedOutput,
       next: choice,
       numsteps: 5,
-      model_name: this.state.model
+      model_name: this.state.model,
+      topk: this.state.topk,
     }
 
     const currentReqId = this.createRequestId();
