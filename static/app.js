@@ -231,6 +231,7 @@ function trimRight(str) {
 const DEFAULT_MODEL = "774M"
 const DEFAULT_TOPK = 10
 const DEFAULT_ENDPOINT = "/predict";
+const DEFAULT_NUMSTEPS = 3
 
 class App extends React.Component {
 
@@ -249,6 +250,7 @@ class App extends React.Component {
       model: DEFAULT_MODEL,
       topk: DEFAULT_TOPK,
       endpoint: DEFAULT_ENDPOINT,
+      numsteps: DEFAULT_NUMSTEPS,
     }
 
     this.switchModel = this.switchModel.bind(this)
@@ -315,7 +317,7 @@ class App extends React.Component {
     const payload = {
       previous: trimmedOutput,
       next: choice,
-      numsteps: 5,
+      numsteps: this.state.numsteps,
       model_name: this.state.model,
       topk: this.state.topk,
     }
