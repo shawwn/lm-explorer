@@ -1,7 +1,7 @@
 import itertools
 
-from pytorch_pretrained_bert.tokenization_gpt2 import GPT2Tokenizer
-from pytorch_pretrained_bert.modeling_gpt2 import GPT2LMHeadModel
+from pytorch_transformers.tokenization_gpt2 import GPT2Tokenizer
+from pytorch_transformers.modeling_gpt2 import GPT2LMHeadModel
 import torch
 import tqdm
 
@@ -9,21 +9,22 @@ from lm_explorer.lm.language_model import LanguageModel
 from lm_explorer.util.cache import LRUCache
 from lm_explorer.util.sampling import random_sample
 
-
-MEDIUM_MODEL = 'https://storage.googleapis.com/allennlp/models/gpt2-345M-dump'
-
 class GPT2LanguageModel(LanguageModel):
-    def __init__(self, cache_size: int = 0, model_name: str = '117M') -> None:
+    def __init__(self, cache_size: int = 0, model_name: str = '774M') -> None:
         """
         Each cache element is about 8MB, so size accordingly.
         """
         # Cache stores tuples, so default value is a tuple
         self._cache = LRUCache(cache_size, default_value=(None, None))
-        self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
         if model_name == '117M':
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
             self.model = GPT2LMHeadModel.from_pretrained('gpt2')
         elif model_name == '345M':
-            self.model = GPT2LMHeadModel.from_pretrained(MEDIUM_MODEL)
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-medium')
+            self.model = GPT2LMHeadModel.from_pretrained('gpt2-medium')
+        elif model_name == '774M':
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2-large')
+            self.model = GPT2LMHeadModel.from_pretrained('gpt2-large')
         else:
             exit("model name not found")
 

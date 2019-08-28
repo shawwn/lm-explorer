@@ -4,4 +4,4 @@ flask-cors
 
 gevent
 
-pytorch-pretrained-bert>=0.6
+-e 'git+https://github.com/huggingface/pytorch-transformers.git@d06c5a2a0acd8525d969a8f8f5b968ec0ec110b4#egg=pytorch-transformers'
