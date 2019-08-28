@@ -230,6 +230,7 @@ function trimRight(str) {
 
 const DEFAULT_MODEL = "774M"
 const DEFAULT_TOPK = 10
+const DEFAULT_ENDPOINT = "/predict";
 
 class App extends React.Component {
 
@@ -247,6 +248,7 @@ class App extends React.Component {
       error: false,
       model: DEFAULT_MODEL,
       topk: DEFAULT_TOPK,
+      endpoint: DEFAULT_ENDPOINT,
     }
 
     this.switchModel = this.switchModel.bind(this)
@@ -319,7 +321,7 @@ class App extends React.Component {
     }
 
     const currentReqId = this.createRequestId();
-    const endpoint = '/predict'
+    const endpoint = this.state.endpoint
 
     if ('history' in window && !doNotChangeUrl) {
       addToUrl(this.state.output, choice);
