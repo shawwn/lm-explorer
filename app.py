@@ -110,21 +110,17 @@ def make_app(google_analytics_ua: str) -> Flask:
 
         model_name = data.get("model_name", "117M")
         if model_name == "117M":
-            logits = model_117M().predict(previous_str, next_str)
+            model = model_117M()
         elif model_name == "345M":
-            logits = model_345M().predict(previous_str, next_str)
+            model = model_345M()
         elif model_name == "774M":
-            logits = model_774M().predict(previous_str, next_str)
+            model = model_774M()
 
+        logits = model.predict(previous_str, next_str)
         probabilities = torch.nn.functional.softmax(logits)
 
         best_logits, best_indices = logits.topk(topk)
-        if model_name == "117M":
-            best_words = [model_117M()[idx.item()] for idx in best_indices]
-        elif model_name == "345M":
-            best_words = [model_345M()[idx.item()] for idx in best_indices]
-        elif model_name == "774M":
-            best_words = [model_774M()[idx.item()] for idx in best_indices]
+        best_words = [model[idx.item()] for idx in best_indices]
         best_probabilities = probabilities[best_indices].tolist()
 
         # random sample
@@ -151,6 +147,13 @@ def make_app(google_analytics_ua: str) -> Flask:
         previous_str = data["previous"]
         next_str = data.get("next", None)
         topk = data.get("topk", 10)
+        model_name = data.get("model_name", "117M")
+        if model_name == "117M":
+            model = model_117M()
+        elif model_name == "345M":
+            model = model_345M()
+        elif model_name == "774M":
+            model = model_774M()
         num_steps = data.get('numsteps', 1)
         temperature = data.get("temperature", 1.0)
         logits = model.predict(previous_str, next_str)
@@ -186,6 +189,13 @@ def make_app(google_analytics_ua: str) -> Flask:
         previous_str = data["previous"]
         next_str = data.get("next", "")
         topk = data.get("topk", 10)
+        model_name = data.get("model_name", "117M")
+        if model_name == "117M":
+            model = model_117M()
+        elif model_name == "345M":
+            model = model_345M()
+        elif model_name == "774M":
+            model = model_774M()
         num_steps = data['numsteps']
         def candidates(s1: str = "", s2: str = None, score: float = 0.0) -> List[BeamElement]:
             logits = model.predict(previous_str + s1, s2)
