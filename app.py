@@ -161,8 +161,7 @@ def make_app(google_analytics_ua: str) -> Flask:
             model = model_774M()
 
         seed = previous_str + (next_str or "")
-        output = model.generate(seed=seed, max_len=num_steps)
-        outputs = [output]
+        outputs = [model.generate(seed=seed, max_len=num_steps) for _ in range(topk)]
 
         # random sample
         # random_id = random_sample(logits)
