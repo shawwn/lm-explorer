@@ -228,7 +228,7 @@ function trimRight(str) {
   return str.replace(/ +$/, '');
 }
 
-const DEFAULT_MODEL = "345M"
+const DEFAULT_MODEL = "774M"
 
 class App extends React.Component {
 
@@ -294,7 +294,7 @@ class App extends React.Component {
   }
 
   switchModel() {
-    const newModel = this.state.model == "117M" ? "345M" : "117M"
+    const newModel = this.state.model == "117M" ? "345M" : this.state.model == "345M" ? "774M" : "117M";
     this.setState({ loading: true, error: false, model: newModel }, this.choose)
   }
 
@@ -414,6 +414,8 @@ class App extends React.Component {
 
 const ModelSwitcher = ({model, switchModel}) => (
   <span className="model-switcher" onClick={switchModel}>
+    {' '}
+    <ModelChoice selected={model==="774M"}>774M</ModelChoice>
     {' '}
     <ModelChoice selected={model==="345M"}>345M</ModelChoice>
     {' '}

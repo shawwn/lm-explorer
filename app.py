@@ -42,10 +42,28 @@ class ServerError(Exception):
         return error_dict
 
 
-def make_app(google_analytics_ua: str) -> Flask:
-    model_117M = GPT2LanguageModel(model_name='117M')
-    model_345M = GPT2LanguageModel(model_name='345M')
+def model_117M():
+    global _model_117M
+    if _model_117M is None:
+        print("Loading 117M...")
+        _model_117M = GPT2LanguageModel(model_name='117M')
+    return _model_117M
 
+def model_345M():
+    global _model_345M
+    if _model_345M is None:
+        print("Loading 345M...")
+        _model_345M = GPT2LanguageModel(model_name='345M')
+    return _model_345M
+
+def model_774M():
+    global _model_774M
+    if _model_774M is None:
+        print("Loading 774M...")
+        _model_774M = GPT2LanguageModel(model_name='774M')
+    return _model_774M
+
+def make_app(google_analytics_ua: str) -> Flask:
     app = Flask(__name__) # pylint: disable=invalid-name
 
     # We hash the javascript file and use it as a cache breaker
@@ -89,17 +107,21 @@ def make_app(google_analytics_ua: str) -> Flask:
 
         model_name = data.get("model_name", "117M")
         if model_name == "117M":
-            logits = model_117M.predict(previous_str, next_str)
+            logits = model_117M().predict(previous_str, next_str)
         elif model_name == "345M":
-            logits = model_345M.predict(previous_str, next_str)
+            logits = model_345M().predict(previous_str, next_str)
+        elif model_name == "774M":
+            logits = model_774M().predict(previous_str, next_str)
 
         probabilities = torch.nn.functional.softmax(logits)
 
         best_logits, best_indices = logits.topk(topk)
         if model_name == "117M":
-            best_words = [model_117M[idx.item()] for idx in best_indices]
+            best_words = [model_117M()[idx.item()] for idx in best_indices]
         elif model_name == "345M":
-            best_words = [model_345M[idx.item()] for idx in best_indices]
+            best_words = [model_345M()[idx.item()] for idx in best_indices]
+        elif model_name == "774M":
+            best_words = [model_774M()[idx.item()] for idx in best_indices]
         best_probabilities = probabilities[best_indices].tolist()
 
         # random sample
@@ -117,73 +139,73 @@ def make_app(google_analytics_ua: str) -> Flask:
 
     # This endpoint isn't used, so it's commented out. You can re-enable
     # it by uncommenting it.
-    #
-    # @app.route('/random', methods=['POST', 'OPTIONS'])
-    # def random() -> Response:  # pylint: disable=unused-variable
-    #     if request.method == "OPTIONS":
-    #         return Response(response="", status=200)
-    #     data = request.get_json()
-    #     previous_str = data["previous"]
-    #     next_str = data.get("next", None)
-    #     topk = data.get("topk", 10)
-    #     num_steps = data.get('numsteps', 1)
-    #     temperature = data.get("temperature", 1.0)
-    #     logits = model.predict(previous_str, next_str)
-    #     probabilities = torch.nn.functional.softmax(logits / temperature)
-    #     samples = torch.multinomial(probabilities, num_samples=topk, replacement=False)
-    #     outputs = [(f"{previous_str}{next_str or ''}", model[idx.item()]) for idx in samples]
-    #     for _ in range(num_steps - 1):
-    #         new_outputs = []
-    #         for p, n in outputs:
-    #             logits = model.predict(p, n)
-    #             probabilities = torch.nn.functional.softmax(logits / temperature)
-    #             random_id = random_sample(logits / temperature)
-    #             random_word = model[random_id]
-    #             random_word_logit = logits[random_id].item()
-    #             random_word_probability = probabilities[random_id].item()
-    #             new_outputs.append((f"{p}{n}", random_word))
-    #         outputs = new_outputs
-    #     return jsonify({
-    #         "previous": previous_str,
-    #         "words": [f"{p}{n}" for p, n in outputs],
-    #         "logits": [0 for _ in outputs],
-    #         "probabilities": [0 for _ in outputs]
-    #     })
+    
+    @app.route('/random', methods=['POST', 'OPTIONS'])
+    def random() -> Response:  # pylint: disable=unused-variable
+        if request.method == "OPTIONS":
+            return Response(response="", status=200)
+        data = request.get_json()
+        previous_str = data["previous"]
+        next_str = data.get("next", None)
+        topk = data.get("topk", 10)
+        num_steps = data.get('numsteps', 1)
+        temperature = data.get("temperature", 1.0)
+        logits = model.predict(previous_str, next_str)
+        probabilities = torch.nn.functional.softmax(logits / temperature)
+        samples = torch.multinomial(probabilities, num_samples=topk, replacement=False)
+        outputs = [(f"{previous_str}{next_str or ''}", model[idx.item()]) for idx in samples]
+        for _ in range(num_steps - 1):
+            new_outputs = []
+            for p, n in outputs:
+                logits = model.predict(p, n)
+                probabilities = torch.nn.functional.softmax(logits / temperature)
+                random_id = random_sample(logits / temperature)
+                random_word = model[random_id]
+                random_word_logit = logits[random_id].item()
+                random_word_probability = probabilities[random_id].item()
+                new_outputs.append((f"{p}{n}", random_word))
+            outputs = new_outputs
+        return jsonify({
+            "previous": previous_str,
+            "words": [f"{p}{n}" for p, n in outputs],
+            "logits": [0 for _ in outputs],
+            "probabilities": [0 for _ in outputs]
+        })
 
     # This endpoint isn't used, so it's commented out. You can re-enable
     # it by uncommenting it.
-    #
-    # @app.route('/beam', methods=['POST', 'OPTIONS'])
-    # def beam() -> Response:  # pylint: disable=unused-variable
-    #     if request.method == "OPTIONS":
-    #         return Response(response="", status=200)
-    #     data = request.get_json()
-    #     previous_str = data["previous"]
-    #     next_str = data.get("next", "")
-    #     topk = data.get("topk", 10)
-    #     num_steps = data['numsteps']
-    #     def candidates(s1: str = "", s2: str = None, score: float = 0.0) -> List[BeamElement]:
-    #         logits = model.predict(previous_str + s1, s2)
-    #         log_probabilities = torch.nn.functional.log_softmax(logits) + score
-    #         best_log_probabilities, best_indices = log_probabilities.topk(topk)
-    #         new_str = s1 if s2 is None else s1 + s2
-    #         beam = [BeamElement(lp.item() + score, new_str, model[idx.item()])
-    #                 for lp, idx in zip(best_log_probabilities, best_indices)]
-    #         return beam
-    #     # Initial step
-    #     beam = candidates(next_str)
-    #     for i in range(num_steps - 1):
-    #         new_beam: List[BeamElement] = []
-    #         for element in beam:
-    #             new_beam.extend(candidates(element.prev_str, element.next_str, element.score))
-    #         new_beam.sort(key=lambda elt: elt.score, reverse=True)
-    #         beam = new_beam[:topk]
-    #     return jsonify({
-    #         "previous": previous_str,
-    #         "words": [elt.prev_str + elt.next_str for elt in beam],
-    #         "logits": [elt.score for elt in beam],
-    #         "probabilities": [elt.score for elt in beam]
-    #     })
+    
+    @app.route('/beam', methods=['POST', 'OPTIONS'])
+    def beam() -> Response:  # pylint: disable=unused-variable
+        if request.method == "OPTIONS":
+            return Response(response="", status=200)
+        data = request.get_json()
+        previous_str = data["previous"]
+        next_str = data.get("next", "")
+        topk = data.get("topk", 10)
+        num_steps = data['numsteps']
+        def candidates(s1: str = "", s2: str = None, score: float = 0.0) -> List[BeamElement]:
+            logits = model.predict(previous_str + s1, s2)
+            log_probabilities = torch.nn.functional.log_softmax(logits) + score
+            best_log_probabilities, best_indices = log_probabilities.topk(topk)
+            new_str = s1 if s2 is None else s1 + s2
+            beam = [BeamElement(lp.item() + score, new_str, model[idx.item()])
+                    for lp, idx in zip(best_log_probabilities, best_indices)]
+            return beam
+        # Initial step
+        beam = candidates(next_str)
+        for i in range(num_steps - 1):
+            new_beam: List[BeamElement] = []
+            for element in beam:
+                new_beam.extend(candidates(element.prev_str, element.next_str, element.score))
+            new_beam.sort(key=lambda elt: elt.score, reverse=True)
+            beam = new_beam[:topk]
+        return jsonify({
+            "previous": previous_str,
+            "words": [elt.prev_str + elt.next_str for elt in beam],
+            "logits": [elt.score for elt in beam],
+            "probabilities": [elt.score for elt in beam]
+        })
 
 
     return app
